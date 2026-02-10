@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Your Yoto Bundle</title>
+<style>
+  @font-face {
+    font-family: 'castledown-regular';
+    src: url('https://cdn.shopify.com/s/files/1/0051/8845/2401/files/castledown-regular.woff2?v=1613054078') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'castledown-bold';
+    src: url('https://cdn.shopify.com/s/files/1/0051/8845/2401/files/castledown-bold.woff2?v=1613054078') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'castledown-heavy';
+    src: url('https://cdn.shopify.com/s/files/1/0051/8845/2401/files/castledown-heavy.woff2?v=1679586122') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --yoto-red: #F45436;
+    --yoto-red-light: #FD9E69;
+    --yoto-green: #003C1F;
+    --yoto-green-light: #00613A;
+    --yoto-yellow: #FBD924;
+    --yoto-blue: #1374E0;
+    --yoto-pink: #DDA7CD;
+    --yoto-cream: #FBF6F1;
+    --yoto-warm-gray: #F5F0F0;
+    --yoto-dark: #181818;
+    --yoto-text: #212121;
+    --yoto-muted: #666666;
+    --yoto-light-muted: #999999;
+    --yoto-border: #E8E2E2;
+    --font-body: 'castledown-regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-bold: 'castledown-bold', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-heavy: 'castledown-heavy', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--yoto-cream);
+    color: var(--yoto-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Yoto Logo SVG inline */
+  .yoto-logo svg { height: 40px; width: 40px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useRef, useCallback } = React;
+
+// ─── Brand Tokens ────────────────────────────────────────────────────────
+const T = {
+  red: '#F45436', redLight: '#FD9E69', redHover: '#E04830',
+  green: '#003C1F', greenLight: '#00613A',
+  yellow: '#FBD924', blue: '#1374E0', pink: '#DDA7CD',
+  cream: '#FBF6F1', warmGray: '#F5F0F0', white: '#FFFFFF',
+  dark: '#181818', text: '#212121', muted: '#666666', lightMuted: '#999999',
+  border: '#E8E2E2', borderLight: '#F0EAEA',
+  fontBody: "'castledown-regular', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontBold: "'castledown-bold', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontHeavy: "'castledown-heavy', -apple-system, BlinkMacSystemFont, sans-serif",
+  radius: 12, radiusLg: 16, radiusXl: 20,
+};
+
+// ─── Product Data ────────────────────────────────────────────────────────
+const PLAYERS = [
+  {
+    id: 'player', name: 'Yoto Player', subtitle: '3rd Generation', price: 89.99,
+    tagline: 'The screen-free audio platform for home',
+    age: 'Ages 3–12+',
+    features: ['Ok-to-wake night light & clock', 'Up to 24 hours battery', 'WiFi + Bluetooth', '32GB storage', 'Room thermometer', 'Stereo sound'],
+    ideal: 'Best for bedrooms & home use',
+    color: T.red,
+    img: 'https://uk.yotoplay.com/_next/image?url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0051%2F8845%2F2401%2Ffiles%2FYoto_Player_3rdGen_Front_34.png%3Fv%3D1729165781&w=640&q=90',
+  },
+  {
+    id: 'mini', name: 'Yoto Mini', subtitle: '2024 Edition', price: 59.99,
+    tagline: 'The on-the-go audio companion',
+    age: 'Ages 3–12+',
+    features: ['Compact & travel-friendly', 'Up to 20 hours battery', 'Bluetooth', '32GB storage', 'Pixel display', 'Ok-to-wake clock'],
+    ideal: 'Best for on-the-go adventures',
+    color: T.green,
+    img: 'https://uk.yotoplay.com/_next/image?url=https%3A%2F%2Fcdn.shopify.com%2Fs%2Ffiles%2F1%2F0051%2F8845%2F2401%2Ffiles%2FYoto_Mini_2024_Front_34.png%3Fv%3D1728570714&w=640&q=90',
+  },
+];
+
+const CONTENT_PACKS = [
+  { id: 'starter', name: 'Starter Pack', price: 19.99, bundlePrice: 10.00, cards: 7, desc: 'Stories, music, activities & a Make Your Own card', tag: 'Most Popular', ages: 'All ages' },
+  { id: 'little-kids', name: 'Starter Pack for Little Kids', price: 19.99, bundlePrice: 14.99, cards: 6, desc: 'Row Your Boat, Sleepy Stories, Let\'s Move & more', tag: 'Under 5s', ages: 'Ages 0–5' },
+  { id: 'big-kids', name: 'Starter Pack for Big Kids', price: 19.99, bundlePrice: 14.99, cards: 6, desc: 'Adventure stories, podcasts & creative content', tag: 'Over 5s', ages: 'Ages 5–12+' },
+  { id: 'gruffalo', name: 'Gruffalo & Friends Collection', price: 29.94, bundlePrice: 24.99, cards: 4, desc: 'The Gruffalo, Room on the Broom & Julia Donaldson favourites', tag: 'Bestseller', ages: 'Ages 3–7' },
+];
+
+const CLUB_TIERS = [
+  { id: 'none', name: 'No Club', monthlyPrice: 0, yearlyPrice: 0, features: [], desc: 'Continue without a subscription' },
+  { id: 'explorer', name: 'Explorer', monthlyPrice: 3.99, yearlyPrice: 29.99, features: ['140+ Yoto Originals', 'New & exclusive content monthly', 'Members-only discounts'], desc: 'Unlimited digital access to the full library', tag: '14-day free trial' },
+  { id: 'collector', name: 'Collector', monthlyPrice: 7.99, yearlyPrice: 69.99, features: ['Everything in Explorer', '1 card credit every month', '10% off all purchases', 'Free shipping over £12'], desc: 'Digital access + physical cards delivered', tag: 'Best value' },
+  { id: 'collector-plus', name: 'Collector+', monthlyPrice: 12.99, yearlyPrice: 119.99, features: ['Everything in Collector', '2 card credits every month', 'Priority access to new releases'], desc: 'The ultimate Yoto family plan', tag: 'For superfans' },
+];
+
+const ACCESSORIES = [
+  { id: 'travel-case', name: 'Travel Case', price: 24.99, desc: 'Hard-shell protection with card storage for 30 cards', forPlayer: true, forMini: true },
+  { id: 'adventure-jacket', name: 'Adventure Jacket', price: 14.99, desc: 'Colourful silicone bumper with clip-on wrist lanyard', forPlayer: false, forMini: true },
+  { id: 'card-case', name: 'Card Case', price: 12.99, desc: 'Soft-case folder that holds up to 64 cards', forPlayer: true, forMini: true },
+  { id: 'headphones', name: 'Yoto Headphones', price: 29.99, desc: 'Kid-safe volume-limited wireless headphones', forPlayer: true, forMini: true },
+  { id: 'myo-cards', name: 'Make Your Own Cards (5-pack)', price: 9.99, desc: 'Blank cards — record your own stories, songs & playlists', forPlayer: true, forMini: true },
+];
+
+const STEPS = [
+  { num: 1, label: 'Player' },
+  { num: 2, label: 'Content' },
+  { num: 3, label: 'Club' },
+  { num: 4, label: 'Extras' },
+];
+
+// ─── Yoto Logo Component ─────────────────────────────────────────────────
+function YotoLogo({ size = 44 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="50" fill={T.red}/>
+      <circle cx="35" cy="42" r="5" fill={T.white}/>
+      <circle cx="65" cy="42" r="5" fill={T.white}/>
+      <path d="M30 58 Q50 75 70 58" stroke={T.white} strokeWidth="5" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+
+// ─── Navigation Bar ──────────────────────────────────────────────────────
+function NavBar() {
+  return (
+    <div style={{
+      background: T.red, padding: '12px 24px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <YotoLogo size={40} />
+        <span style={{ fontFamily: T.fontBold, color: T.white, fontSize: 15, opacity: 0.9 }}>
+          Build Your Bundle
+        </span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: T.white, fontSize: 14 }}>
+        <span style={{ fontFamily: T.fontBody, opacity: 0.85 }}>Need help? <u style={{ cursor: 'pointer' }}>Chat with us</u></span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Step Progress ───────────────────────────────────────────────────────
+function StepProgress({ currentStep, onStepClick, completedSteps }) {
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 50,
+      background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(12px)',
+      borderBottom: `1px solid ${T.borderLight}`, padding: '14px 24px',
+    }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        {STEPS.map((step, i) => {
+          const isComplete = completedSteps.includes(step.num);
+          const isCurrent = step.num === currentStep;
+          const isClickable = isComplete || isCurrent;
+          return (
+            <React.Fragment key={step.num}>
+              <button
+                onClick={() => isClickable ? onStepClick(step.num) : null}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  background: 'none', border: 'none',
+                  cursor: isClickable ? 'pointer' : 'default',
+                  padding: '6px 2px', opacity: isCurrent || isComplete ? 1 : 0.4,
+                  transition: 'opacity 0.3s',
+                }}
+              >
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: isComplete && !isCurrent ? T.green : isCurrent ? T.red : T.border,
+                  color: (isComplete || isCurrent) ? T.white : T.muted,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontFamily: T.fontBold, transition: 'all 0.3s',
+                  flexShrink: 0,
+                }}>
+                  {isComplete && !isCurrent ? '✓' : step.num}
+                </div>
+                <span style={{
+                  fontFamily: isCurrent ? T.fontBold : T.fontBody,
+                  fontSize: 14, color: isCurrent ? T.text : T.muted,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {step.label}
+                </span>
+              </button>
+              {i < STEPS.length - 1 && (
+                <div style={{
+                  flex: 1, height: 2, borderRadius: 1,
+                  background: step.num < currentStep ? T.green : T.border,
+                  transition: 'background 0.3s',
+                }} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Player Card ─────────────────────────────────────────────────────────
+function PlayerCard({ player, selected, onSelect }) {
+  const isSelected = selected === player.id;
+  return (
+    <button
+      onClick={() => onSelect(player.id)}
+      style={{
+        flex: 1, minWidth: 290, maxWidth: 360, padding: 0,
+        border: isSelected ? `3px solid ${player.color}` : `3px solid ${T.border}`,
+        borderRadius: T.radiusXl, background: T.white, cursor: 'pointer',
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isSelected ? `0 12px 40px ${player.color}20` : '0 2px 16px rgba(0,0,0,0.05)',
+        transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)', overflow: 'hidden', textAlign: 'left',
+      }}
+    >
+      {/* Product Image Area */}
+      <div style={{
+        background: T.warmGray, padding: '28px 24px 20px', textAlign: 'center',
+        position: 'relative',
+      }}>
+        <img
+          src={player.img}
+          alt={player.name}
+          style={{ height: 160, objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.1))' }}
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+      </div>
+
+      {/* Info */}
+      <div style={{ padding: '20px 24px 24px' }}>
+        <h3 style={{ fontFamily: T.fontHeavy, fontSize: 22, color: T.text, marginBottom: 2 }}>{player.name}</h3>
+        <p style={{ fontFamily: T.fontBody, fontSize: 13, color: T.lightMuted, marginBottom: 12 }}>{player.subtitle}</p>
+
+        <div style={{
+          display: 'inline-block', background: `${player.color}14`, color: player.color,
+          fontSize: 12, fontFamily: T.fontBold, padding: '4px 12px', borderRadius: 20, marginBottom: 14,
+        }}>
+          {player.age}
+        </div>
+
+        <div style={{ fontFamily: T.fontHeavy, fontSize: 30, color: T.red, marginBottom: 4 }}>
+          £{player.price.toFixed(2)}
+        </div>
+        <p style={{ fontFamily: T.fontBold, fontSize: 13, color: T.green, marginBottom: 16 }}>{player.ideal}</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {player.features.map((f) => (
+            <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontFamily: T.fontBody, color: T.muted }}>
+              <span style={{ color: T.green, fontSize: 13, fontFamily: T.fontBold }}>✓</span> {f}
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          marginTop: 20, padding: '13px 0', textAlign: 'center', borderRadius: T.radius,
+          background: isSelected ? T.red : T.warmGray,
+          color: isSelected ? T.white : T.muted,
+          fontFamily: T.fontBold, fontSize: 15,
+          transition: 'all 0.3s ease',
+        }}>
+          {isSelected ? '✓ Selected' : 'Select this player'}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// ─── Content Pack Row ────────────────────────────────────────────────────
+function ContentPackRow({ pack, selected, onToggle, hasPlayer }) {
+  const isSelected = selected.includes(pack.id);
+  const displayPrice = hasPlayer ? pack.bundlePrice : pack.price;
+  const tagColors = {
+    'Most Popular': { bg: `${T.red}15`, color: T.red },
+    'Bestseller': { bg: `${T.yellow}40`, color: '#8B6914' },
+    'Under 5s': { bg: `${T.pink}30`, color: '#8B4D7C' },
+    'Over 5s': { bg: `${T.blue}15`, color: T.blue },
+  };
+  const tagStyle = tagColors[pack.tag] || { bg: T.warmGray, color: T.muted };
+
+  return (
+    <button
+      onClick={() => onToggle(pack.id)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', width: '100%',
+        border: isSelected ? `2px solid ${T.red}` : `2px solid ${T.border}`,
+        borderRadius: T.radiusLg, background: isSelected ? `${T.red}06` : T.white,
+        cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease',
+      }}
+    >
+      <div style={{
+        width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+        border: isSelected ? 'none' : `2px solid ${T.border}`,
+        background: isSelected ? T.red : T.white,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: T.white, fontSize: 14, fontFamily: T.fontBold, transition: 'all 0.2s',
+      }}>
+        {isSelected && '✓'}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: T.fontBold, fontSize: 15, color: T.text }}>{pack.name}</span>
+          <span style={{
+            fontSize: 11, fontFamily: T.fontBold, padding: '2px 8px', borderRadius: 10,
+            background: tagStyle.bg, color: tagStyle.color,
+          }}>{pack.tag}</span>
+        </div>
+        <p style={{ fontSize: 13, fontFamily: T.fontBody, color: T.muted, marginBottom: 2 }}>
+          {pack.cards} cards — {pack.desc}
+        </p>
+        <span style={{ fontSize: 12, fontFamily: T.fontBody, color: T.lightMuted }}>{pack.ages}</span>
+      </div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontFamily: T.fontHeavy, fontSize: 17, color: T.text }}>
+          £{displayPrice.toFixed(2)}
+        </div>
+        {hasPlayer && pack.bundlePrice < pack.price && (
+          <div style={{ fontSize: 11, fontFamily: T.fontBold, color: T.green }}>
+            Save £{(pack.price - pack.bundlePrice).toFixed(2)}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+}
+
+// ─── Club Tier Card ──────────────────────────────────────────────────────
+function ClubTierCard({ tier, selected, onSelect, annual }) {
+  const isSelected = selected === tier.id;
+  const isNone = tier.id === 'none';
+  const price = annual ? tier.yearlyPrice : tier.monthlyPrice;
+  const tagColors = {
+    'Best value': { bg: T.green, color: T.white },
+    '14-day free trial': { bg: T.yellow, color: T.dark },
+    'For superfans': { bg: T.pink, color: T.dark },
+  };
+  const tagStyle = tier.tag ? tagColors[tier.tag] || { bg: T.muted, color: T.white } : null;
+
+  return (
+    <button
+      onClick={() => onSelect(tier.id)}
+      style={{
+        flex: 1, minWidth: 160, padding: '22px 16px 20px', textAlign: 'center',
+        border: isSelected ? `2px solid ${isNone ? T.border : T.red}` : `2px solid ${T.border}`,
+        borderRadius: T.radiusLg,
+        background: isSelected && !isNone ? T.green : T.white,
+        cursor: 'pointer', transition: 'all 0.25s ease', position: 'relative',
+      }}
+    >
+      {tagStyle && (
+        <div style={{
+          position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)',
+          background: tagStyle.bg, color: tagStyle.color,
+          fontSize: 10, fontFamily: T.fontBold, padding: '3px 10px', borderRadius: 10,
+          whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.03em',
+        }}>
+          {tier.tag}
+        </div>
+      )}
+      <h4 style={{
+        fontFamily: T.fontHeavy, fontSize: 16, margin: '4px 0 6px',
+        color: isSelected && !isNone ? T.white : T.text,
+      }}>
+        {tier.name}
+      </h4>
+      {!isNone && (
+        <div style={{
+          fontFamily: T.fontHeavy, fontSize: 24,
+          color: isSelected ? T.white : T.red,
+          margin: '8px 0 2px',
+        }}>
+          £{price.toFixed(2)}
+          <span style={{
+            fontSize: 13, fontFamily: T.fontBody,
+            color: isSelected && !isNone ? 'rgba(255,255,255,0.7)' : T.lightMuted,
+          }}>
+            /{annual ? 'yr' : 'mo'}
+          </span>
+        </div>
+      )}
+      <p style={{
+        fontSize: 12, fontFamily: T.fontBody, lineHeight: 1.4, margin: '8px 0 14px',
+        color: isSelected && !isNone ? 'rgba(255,255,255,0.8)' : T.muted,
+      }}>
+        {tier.desc}
+      </p>
+      {tier.features.length > 0 && (
+        <div style={{ textAlign: 'left' }}>
+          {tier.features.map((f) => (
+            <div key={f} style={{
+              fontSize: 12, fontFamily: T.fontBody, padding: '3px 0',
+              color: isSelected && !isNone ? 'rgba(255,255,255,0.9)' : T.muted,
+              display: 'flex', alignItems: 'flex-start', gap: 6,
+            }}>
+              <span style={{
+                color: isSelected && !isNone ? T.yellow : T.green,
+                fontSize: 12, fontFamily: T.fontBold, flexShrink: 0, marginTop: 1,
+              }}>✓</span>
+              {f}
+            </div>
+          ))}
+        </div>
+      )}
+    </button>
+  );
+}
+
+// ─── Accessory Row ───────────────────────────────────────────────────────
+function AccessoryRow({ acc, selected, onToggle }) {
+  const isSelected = selected.includes(acc.id);
+  return (
+    <button
+      onClick={() => onToggle(acc.id)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', width: '100%',
+        border: isSelected ? `2px solid ${T.red}` : `2px solid ${T.border}`,
+        borderRadius: T.radius, background: isSelected ? `${T.red}06` : T.white,
+        cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease',
+      }}
+    >
+      <div style={{
+        width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+        border: isSelected ? 'none' : `2px solid ${T.border}`,
+        background: isSelected ? T.red : T.white,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: T.white, fontSize: 13, fontFamily: T.fontBold, transition: 'all 0.2s',
+      }}>
+        {isSelected && '✓'}
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: T.fontBold, fontSize: 14, color: T.text }}>{acc.name}</div>
+        <p style={{ fontSize: 12, fontFamily: T.fontBody, color: T.muted, margin: '2px 0 0' }}>{acc.desc}</p>
+      </div>
+      <div style={{ fontFamily: T.fontHeavy, fontSize: 15, color: T.text, flexShrink: 0 }}>
+        £{acc.price.toFixed(2)}
+      </div>
+    </button>
+  );
+}
+
+// ─── Sticky Cart ─────────────────────────────────────────────────────────
+function StickyCart({ items, total, clubTier, clubAnnual }) {
+  if (items.length === 0) return null;
+  return (
+    <div style={{
+      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+      background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(12px)',
+      borderTop: `1px solid ${T.border}`, padding: '12px 24px',
+    }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 12, fontFamily: T.fontBody, color: T.muted }}>
+            {items.length} item{items.length !== 1 ? 's' : ''} in your bundle
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ fontFamily: T.fontHeavy, fontSize: 22, color: T.text }}>
+              £{total.toFixed(2)}
+            </span>
+            {clubTier && clubTier.id !== 'none' && (
+              <span style={{ fontSize: 12, fontFamily: T.fontBody, color: T.muted }}>
+                + £{(clubAnnual ? clubTier.yearlyPrice : clubTier.monthlyPrice).toFixed(2)}/{clubAnnual ? 'yr' : 'mo'}
+              </span>
+            )}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {items.filter(i => i.type !== 'club').slice(0, 3).map((item, i) => (
+            <div key={i} style={{
+              background: T.warmGray, borderRadius: 8, padding: '3px 10px',
+              fontSize: 11, fontFamily: T.fontBody, color: T.muted, whiteSpace: 'nowrap',
+            }}>
+              {item.name}
+            </div>
+          ))}
+          {items.filter(i => i.type !== 'club').length > 3 && (
+            <div style={{ background: T.warmGray, borderRadius: 8, padding: '3px 10px', fontSize: 11, fontFamily: T.fontBody, color: T.muted }}>
+              +{items.filter(i => i.type !== 'club').length - 3} more
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Primary CTA Button ─────────────────────────────────────────────────
+function PrimaryButton({ children, onClick, variant = 'red', style: extraStyle = {} }) {
+  const bg = variant === 'dark' ? T.dark : T.red;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '14px 36px', background: bg, color: T.white,
+        border: 'none', borderRadius: T.radius,
+        fontFamily: T.fontBold, fontSize: 16, cursor: 'pointer',
+        boxShadow: `0 4px 16px ${bg}33`,
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        ...extraStyle,
+      }}
+      onMouseEnter={(e) => { e.target.style.transform = 'translateY(-2px)'; e.target.style.boxShadow = `0 6px 24px ${bg}44`; }}
+      onMouseLeave={(e) => { e.target.style.transform = 'translateY(0)'; e.target.style.boxShadow = `0 4px 16px ${bg}33`; }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryButton({ children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '12px 24px', background: T.warmGray, color: T.muted,
+        border: 'none', borderRadius: T.radius,
+        fontFamily: T.fontBold, fontSize: 14, cursor: 'pointer',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ─── Info Callout ────────────────────────────────────────────────────────
+function Callout({ children, icon = '💡' }) {
+  return (
+    <div style={{
+      background: `${T.yellow}20`, borderRadius: T.radius, padding: '14px 18px',
+      display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28,
+      border: `1px solid ${T.yellow}40`,
+    }}>
+      <span style={{ fontSize: 22, flexShrink: 0 }}>{icon}</span>
+      <p style={{ fontSize: 13, fontFamily: T.fontBody, color: T.muted, margin: 0, lineHeight: 1.5 }}>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+// ─── Main App ────────────────────────────────────────────────────────────
+function App() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [selectedContent, setSelectedContent] = useState([]);
+  const [selectedClub, setSelectedClub] = useState('none');
+  const [clubAnnual, setClubAnnual] = useState(true);
+  const [selectedAccessories, setSelectedAccessories] = useState([]);
+  const [showReview, setShowReview] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  const completedSteps = [];
+  if (selectedPlayer) completedSteps.push(1);
+  if (selectedContent.length > 0) completedSteps.push(2);
+  completedSteps.push(3);
+  completedSteps.push(4);
+
+  const goToStep = useCallback((step) => {
+    setAnimating(true);
+    setTimeout(() => {
+      setCurrentStep(step);
+      setShowReview(false);
+      setAnimating(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 180);
+  }, []);
+
+  const handlePlayerSelect = (id) => {
+    setSelectedPlayer(id);
+    setSelectedAccessories([]);
+  };
+
+  const toggleContent = (id) => {
+    setSelectedContent((prev) => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAccessory = (id) => {
+    setSelectedAccessories((prev) => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  // Cart calculation
+  const cartItems = [];
+  let total = 0;
+  if (selectedPlayer) {
+    const p = PLAYERS.find(x => x.id === selectedPlayer);
+    cartItems.push({ name: p.name, price: p.price, type: 'player' });
+    total += p.price;
+  }
+  selectedContent.forEach(id => {
+    const pack = CONTENT_PACKS.find(x => x.id === id);
+    const price = selectedPlayer ? pack.bundlePrice : pack.price;
+    cartItems.push({ name: pack.name, price, type: 'content' });
+    total += price;
+  });
+  if (selectedClub !== 'none') {
+    const club = CLUB_TIERS.find(x => x.id === selectedClub);
+    cartItems.push({ name: `Yoto Club ${club.name}`, price: 0, type: 'club' });
+  }
+  selectedAccessories.forEach(id => {
+    const acc = ACCESSORIES.find(x => x.id === id);
+    cartItems.push({ name: acc.name, price: acc.price, type: 'accessory' });
+    total += acc.price;
+  });
+
+  const filteredAccessories = selectedPlayer
+    ? ACCESSORIES.filter(a => selectedPlayer === 'mini' ? a.forMini : a.forPlayer)
+    : ACCESSORIES;
+  const clubTier = CLUB_TIERS.find(x => x.id === selectedClub);
+
+  // ─── Review Screen ──────────────────────────────────────────────────
+  if (showReview) {
+    return (
+      <div style={{ minHeight: '100vh', background: T.cream }}>
+        <NavBar />
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 24px 80px' }}>
+          <button
+            onClick={() => goToStep(4)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.red, fontFamily: T.fontBold, fontSize: 14, marginBottom: 28, padding: 0 }}
+          >
+            ← Edit your bundle
+          </button>
+
+          <h2 style={{ fontFamily: T.fontHeavy, fontSize: 30, color: T.green, marginBottom: 6 }}>Your Yoto Bundle</h2>
+          <p style={{ fontFamily: T.fontBody, fontSize: 15, color: T.muted, marginBottom: 32 }}>
+            Everything you've chosen, ready to go!
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 32 }}>
+            {cartItems.map((item, i) => (
+              <div key={i} style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '14px 18px', background: T.white, borderRadius: T.radius,
+                border: `1px solid ${T.borderLight}`,
+              }}>
+                <div>
+                  <span style={{
+                    fontSize: 10, fontFamily: T.fontBold, color: T.lightMuted,
+                    textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 3,
+                  }}>{item.type}</span>
+                  <span style={{ fontFamily: T.fontBold, fontSize: 15, color: T.text }}>{item.name}</span>
+                </div>
+                <span style={{ fontFamily: T.fontHeavy, fontSize: 15, color: T.text }}>
+                  {item.type === 'club'
+                    ? `£${(clubAnnual ? clubTier.yearlyPrice : clubTier.monthlyPrice).toFixed(2)}/${clubAnnual ? 'yr' : 'mo'}`
+                    : `£${item.price.toFixed(2)}`
+                  }
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Total Banner */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '20px 24px', background: T.green, borderRadius: T.radiusLg, marginBottom: 20,
+          }}>
+            <div>
+              <div style={{ fontSize: 13, fontFamily: T.fontBody, color: 'rgba(255,255,255,0.7)' }}>One-time total</div>
+              <div style={{ fontFamily: T.fontHeavy, fontSize: 28, color: T.white }}>£{total.toFixed(2)}</div>
+            </div>
+            {selectedClub !== 'none' && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 13, fontFamily: T.fontBody, color: 'rgba(255,255,255,0.7)' }}>Plus subscription</div>
+                <div style={{ fontFamily: T.fontHeavy, fontSize: 20, color: T.white }}>
+                  £{(clubAnnual ? clubTier.yearlyPrice : clubTier.monthlyPrice).toFixed(2)}/{clubAnnual ? 'yr' : 'mo'}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Callout icon="🚚">
+            Free delivery on all orders. 60-day fuss-free returns.
+          </Callout>
+
+          <button style={{
+            width: '100%', padding: '16px 0', background: T.red, color: T.white,
+            border: 'none', borderRadius: T.radius, fontFamily: T.fontHeavy, fontSize: 17,
+            cursor: 'pointer', boxShadow: `0 4px 20px ${T.red}33`,
+          }}>
+            Add bundle to basket
+          </button>
+          <p style={{ textAlign: 'center', fontSize: 12, fontFamily: T.fontBody, color: T.lightMuted, marginTop: 12 }}>
+            Prototype — no real checkout
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Main Flow ──────────────────────────────────────────────────────
+  return (
+    <div style={{ minHeight: '100vh', background: T.cream }}>
+      <NavBar />
+      <StepProgress currentStep={currentStep} onStepClick={goToStep} completedSteps={completedSteps} />
+
+      <div style={{
+        maxWidth: 720, margin: '0 auto', padding: '32px 24px 140px',
+        opacity: animating ? 0 : 1,
+        transform: animating ? 'translateY(10px)' : 'translateY(0)',
+        transition: 'all 0.2s ease',
+      }}>
+
+        {/* ── STEP 1: Player ───────────────────────── */}
+        {currentStep === 1 && (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <h2 style={{ fontFamily: T.fontHeavy, fontSize: 30, color: T.green, margin: '0 0 8px' }}>
+                Which Yoto is right for you?
+              </h2>
+              <p style={{ fontFamily: T.fontBody, fontSize: 15, color: T.muted, maxWidth: 460, margin: '0 auto' }}>
+                Both players use the same cards and content library. Choose based on where your child will listen most.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {PLAYERS.map(p => (
+                <PlayerCard key={p.id} player={p} selected={selectedPlayer} onSelect={handlePlayerSelect} />
+              ))}
+            </div>
+
+            {selectedPlayer && (
+              <div style={{ textAlign: 'center', marginTop: 32 }}>
+                <p style={{ fontFamily: T.fontBody, fontSize: 13, color: T.lightMuted, marginBottom: 14 }}>
+                  Not sure? Many families end up with both — one for home, one for travel!
+                </p>
+                <PrimaryButton onClick={() => goToStep(2)}>
+                  Next: Choose content →
+                </PrimaryButton>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── STEP 2: Content ──────────────────────── */}
+        {currentStep === 2 && (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <h2 style={{ fontFamily: T.fontHeavy, fontSize: 30, color: T.green, margin: '0 0 8px' }}>
+                Start with some great content
+              </h2>
+              <p style={{ fontFamily: T.fontBody, fontSize: 15, color: T.muted, maxWidth: 480, margin: '0 auto' }}>
+                Card packs are the easiest way to get started. Pick one or more — you'll save when bundling with a player.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {CONTENT_PACKS.map(pack => (
+                <ContentPackRow key={pack.id} pack={pack} selected={selectedContent} onToggle={toggleContent} hasPlayer={!!selectedPlayer} />
+              ))}
+            </div>
+
+            <Callout>
+              You can browse 1,000+ individual cards in the Card Store after purchase. These packs are curated to get you started right away.
+            </Callout>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <SecondaryButton onClick={() => goToStep(1)}>← Back</SecondaryButton>
+              <PrimaryButton onClick={() => goToStep(3)}>Next: Yoto Club →</PrimaryButton>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 3: Club ─────────────────────────── */}
+        {currentStep === 3 && (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <h2 style={{ fontFamily: T.fontHeavy, fontSize: 30, color: T.green, margin: '0 0 8px' }}>
+                Unlock more with Yoto Club
+              </h2>
+              <p style={{ fontFamily: T.fontBody, fontSize: 15, color: T.muted, maxWidth: 480, margin: '0 auto' }}>
+                Get instant access to 140+ Yoto Originals, member discounts, and monthly card credits. Cancel anytime.
+              </p>
+            </div>
+
+            {/* Monthly/Annual Toggle */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+              <div style={{ display: 'inline-flex', background: T.warmGray, borderRadius: T.radius, padding: 3 }}>
+                <button
+                  onClick={() => setClubAnnual(false)}
+                  style={{
+                    padding: '8px 20px', border: 'none', borderRadius: 10,
+                    background: !clubAnnual ? T.white : 'transparent',
+                    boxShadow: !clubAnnual ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                    fontFamily: T.fontBold, fontSize: 13, cursor: 'pointer',
+                    color: !clubAnnual ? T.text : T.muted,
+                  }}
+                >Monthly</button>
+                <button
+                  onClick={() => setClubAnnual(true)}
+                  style={{
+                    padding: '8px 20px', border: 'none', borderRadius: 10,
+                    background: clubAnnual ? T.white : 'transparent',
+                    boxShadow: clubAnnual ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                    fontFamily: T.fontBold, fontSize: 13, cursor: 'pointer',
+                    color: clubAnnual ? T.text : T.muted,
+                  }}
+                >
+                  Annual <span style={{ color: T.green, fontSize: 11, fontFamily: T.fontBold }}>Save up to 37%</span>
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 28 }}>
+              {CLUB_TIERS.map(tier => (
+                <ClubTierCard key={tier.id} tier={tier} selected={selectedClub} onSelect={setSelectedClub} annual={clubAnnual} />
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <SecondaryButton onClick={() => goToStep(2)}>← Back</SecondaryButton>
+              <PrimaryButton onClick={() => goToStep(4)}>Next: Accessories →</PrimaryButton>
+            </div>
+          </div>
+        )}
+
+        {/* ── STEP 4: Accessories ──────────────────── */}
+        {currentStep === 4 && (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <h2 style={{ fontFamily: T.fontHeavy, fontSize: 30, color: T.green, margin: '0 0 8px' }}>
+                Complete your setup
+              </h2>
+              <p style={{ fontFamily: T.fontBody, fontSize: 15, color: T.muted, maxWidth: 460, margin: '0 auto' }}>
+                These are totally optional — but parents tell us they wish they'd grabbed a case from day one.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+              {filteredAccessories.map(acc => (
+                <AccessoryRow key={acc.id} acc={acc} selected={selectedAccessories} onToggle={toggleAccessory} />
+              ))}
+            </div>
+
+            <Callout icon="🚚">
+              Free delivery on all orders. 60-day fuss-free returns on everything.
+            </Callout>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <SecondaryButton onClick={() => goToStep(3)}>← Back</SecondaryButton>
+              <PrimaryButton variant="dark" onClick={() => setShowReview(true)}>
+                Review your bundle →
+              </PrimaryButton>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <StickyCart items={cartItems} total={total} clubTier={clubTier} clubAnnual={clubAnnual} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
